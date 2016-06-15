@@ -1,5 +1,5 @@
 # commons-pool2-Demo
-创建新的对象并初始化的操作，可能会消耗很多的时间。在这种对象的初始化工作包含了一些费时的操作（例如，从一台位于20,000千米以外的主机上读出一些数据）的时候，尤其是这样。在需要大量生成这样的对象的时候，就可能会对性能造成一些不可忽略的影响。要缓解这个问题，除了选用更好的硬件和更棒的虚拟机以外，适当地采用一些能够减少对象创建次数的编码技巧，也是一种有效的对策。对象池化技术（Object Pooling）就是这方面的著名技巧，而Jakarta Commons Pool组件则是处理对象池化的得力外援。
+创建新的对象并初始化的操作，可能会消耗很多的时间。在这种对象的初始化工作包含了一些费时的操作的时候，尤其是这样。在需要大量生成这样的对象的时候，就可能会对性能造成一些不可忽略的影响。要缓解这个问题，除了选用更好的硬件和更棒的虚拟机以外，适当地采用一些能够减少对象创建次数的编码技巧，也是一种有效的对策。对象池化技术（Object Pooling）就是这方面的著名技巧，而Jakarta Commons Pool组件则是处理对象池化的得力外援。
 
 Commons Pool组件提供了一整套用于实现对象池化的框架，以及若干种各具特色的对象池实现，可以有效地减少处理对象池化时的工作量，为其它重要的工作留下更多的精力和时间
 
@@ -19,10 +19,9 @@ ObjectPool：实现对对象存取和状态管理的池实现；如：线程池�
 PooledObject：池化对象，是需要放到ObjectPool对象的一个包装类。添加了一些附加的信息，比如说状态信息，创建时间，激活时间，关闭时间等
 PooledObjectFactory：工厂类，负责具体对象的创建、初始化，对象状态的销毁和验证
 关系图如下：
+http://upload-images.jianshu.io/upload_images/840965-e7a5179ac162e8b0.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240
 
-
-关系图
-ObjectPool
+# ObjectPool
 //从池中获取对象
 T borrowObject() throws Exception, NoSuchElementException, IllegalStateException;
 
@@ -46,7 +45,8 @@ void clear() throws Exception, UnsupportedOperationException;
 
 //关闭池，池不可用
 void close();
-PooledObject
+
+# PooledObject
 // 获得目标对象
 T getObject();
 
@@ -83,7 +83,8 @@ PooledObjectState getState();
 void markAbandoned();
 
 void markReturning();
-PooledObjectFactory
+
+# PooledObjectFactory
 // 创建一个新对象;当对象池中的对象个数不足时,将会使用此方法来"输出"一个新的"对象",并交付给对象池管理
 PooledObject<T> makeObject() throws Exception;
 
@@ -105,53 +106,24 @@ void activateObject(PooledObject<T> p) throws Exception;
 // "钝化"对象,当调用者"归还对象"时,Pool将会"钝化对象"；钝化的言外之意,就是此"对象"暂且需要"休息"一下.
 // 如果object是一个socket,那么可以passivateObject中清除buffer,将socket阻塞;如果object是一个线程,可以在"钝化"操作中将线程sleep或者将线程中的某个对象wait.需要注意的时,activateObject和passivateObject两个方法需要对应,避免死锁或者"对象"状态的混乱.
 void passivateObject(PooledObject<T> p) throws Exception;
-实例
-public class ConnectionTestFactory extends BaseKeyedPooledObjectFactory<String, ConnectionTest> {    
-    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionTestFactory.class);    
 
-    @Override    
-    public ConnectionTest create(String key) throws Exception {      
-        return new ConnectionTest(key);    
-    }
 
-    @Override   
-    public PooledObject<ConnectionTest> wrap(ConnectionTest value) {            
-        return new DefaultPooledObject<>(value);    
-    }
+# Config详解
 
-    public static void main(String[] args) {        
-        KeyedObjectPool<String, ConnectionTest> objectPool = new GenericKeyedObjectPool<>(new ConnectionTestFactory());        
-    try {            
-        //添加对象到池，重复的不会重复入池            
-        objectPool.addObject("1");            
-        objectPool.addObject("2");            
-        objectPool.addObject("3");            
-
-        // 获得对应key的对象            
-        ConnectionTest connectionTest1 = objectPool.borrowObject("1");               
-        LOGGER.info("borrowObject = {}", connectionTest1);            
-
-        // 释放对象            
-        objectPool.returnObject("1", connectionTest1);            
-
-        //清除所有的对象            
-        objectPool.clear();        
-} catch (Exception e) {            
-LOGGER.error("", e);        
-}    
-}
-}
-Config详解
 lifo：连接池放池化对象方式，默认为true
 
 true：放在空闲队列最前面
+
 false：放在空闲队列最后面
+
 fairness：等待线程拿空闲连接的方式，默认为false
 
 true：相当于等待线程是在先进先出去拿空闲连接
+
 maxWaitMillis：当连接池资源耗尽时，调用者最大阻塞的时间，超时将跑出异常。单位，毫秒数;默认为-1.表示永不超时. 默认值 -1
 
 maxWait：commons-pool1中
+
 minEvictableIdleTimeMillis：连接空闲的最小时间，达到此值后空闲连接将可能会被移除。负值(-1)表示不移除；默认值1000L 60L 30L
 
 softMinEvictableIdleTimeMillis：连接空闲的最小时间，达到此值后空闲链接将会被移除，且保留“minIdle”个空闲连接数。负值(-1)表示不移除。默认值1000L 60L 30L
@@ -181,6 +153,7 @@ jmxNameBase：默认值 null
 maxTotal：链接池中最大连接数，默认值8
 
 commons-pool1 中maxActive改成maxTotal
+
 maxIdle：连接池中最大空闲的连接数,默认为8
 
 minIdle: 连接池中最少空闲的连接数,默认为0
@@ -190,7 +163,6 @@ softMinEvictableIdleTimeMillis: 连接空闲的最小时间，达到此值后空
 numTestsPerEvictionRun: 对于“空闲链接”检测线程而言，每次检测的链接资源的个数。默认为3.
 
 whenExhaustedAction: 当“连接池”中active数量达到阀值时，即“链接”资源耗尽时，连接池需要采取的手段, 默认为1：
-
 0：抛出异常
 1：阻塞，直到有可用链接资源
 2：强制创建新的链接资源
